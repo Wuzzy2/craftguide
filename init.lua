@@ -121,7 +121,7 @@ minetest.register_on_player_receive_fields(function(player, listname, fields)
 		local recipe_num = tonumber(formspec:match("Recipe%s(%d+)")) or 1
 		recipe_num = recipe_num + 1
 		craftguide:get_formspec(stack, pagenum, item, recipe_num, filter, player_name)
-	elseif fields.search or fields.filter then
+	elseif fields.search then
 		craftguide:get_items(fields.filter:lower(), player_name)
 		craftguide:get_formspec(stack, 1, nil, 1, fields.filter:lower(), player_name)
 	elseif fields.prev or fields.next then
