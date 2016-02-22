@@ -116,23 +116,26 @@ minetest.register_on_player_receive_fields(function(player, listname, fields)
 	if fields.clear then
 		craftguide:get_items(nil, player_name)
 		craftguide:get_formspec(stack, 1, nil, 1, "", player_name)
+		return
 	elseif fields.alternate then
 		local item = formspec:match("item_image_button%[.*;([%w_:]+);.*%]") or 1
 		local recipe_num = tonumber(formspec:match("Recipe%s(%d+)")) or 1
 		recipe_num = recipe_num + 1
 		craftguide:get_formspec(stack, pagenum, item, recipe_num, filter, player_name)
-	elseif fields.search then
-		craftguide:get_items(fields.filter:lower(), player_name)
-		craftguide:get_formspec(stack, 1, nil, 1, fields.filter:lower(), player_name)
+		return
 	elseif fields.prev or fields.next then
 		if fields.prev then pagenum = pagenum - 1
 		else pagenum = pagenum + 1 end
 		craftguide:get_formspec(stack, pagenum, nil, 1, filter, player_name)
-	else for item in pairs(fields) do
+		return
+	elseif fields.search or fields.filter then
+		craftguide:get_items(fields.filter:lower(), player_name)
+		craftguide:get_formspec(stack, 1, nil, 1, fields.filter:lower(), player_name)
+	end
+	for item in pairs(fields) do
 		 if minetest.get_craft_recipe(item).items then
 			craftguide:get_formspec(stack, pagenum, item, 1, filter, player_name)
 		 end
-	     end
 	end
 end)
 
