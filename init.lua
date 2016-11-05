@@ -1,10 +1,29 @@
 local craftguide, datas, npp = {}, {}, 8*3
 
+local group_stereotypes = {
+	["wool"] = "wool:white",
+	["dye"] = "dye:white",
+	["stick"] = "default:stick",
+	["wood"] = "default:wood",
+	["stone"] = "default:cobble",
+	["book"] = "default:book",
+	["sand"] = "default:sand",
+	["tree"] = "default:tree",
+	["leaves"] = "default:leaves",
+	["water_bucket"] = "bucket:bucket_water",
+	["vessel"] = "vessels:glass_bottle",
+	["coal"] = "default:coal_lump",
+	["flower"] = "flowers:dandelion_yellow",
+	["sapling"] = "default:sapling",
+	["mesecon_conductor_craftable"] = "mesecons:wire_00000000_off",
+}
+
 function craftguide:get_recipe(item)
 	if item:sub(1,6) == "group:" then
-		if item:sub(-4) == "wool" or item:sub(-3) == "dye" then
-			item = item:sub(7)..":white"
-		elseif minetest.registered_items["default:"..item:sub(7)] then
+		local rest = item:sub(7,-1)
+		if group_stereotypes[rest] ~= nil then
+			item = group_stereotypes[rest]
+		elseif minetest.registered_items["default:"..item:sub(7,-1)] then
 			item = item:gsub("group:", "default:")
 		else for node, def in pairs(minetest.registered_items) do
 			 if def.groups[item:match("[^,:]+$")] then item = node end
