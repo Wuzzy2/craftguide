@@ -67,10 +67,14 @@ function craftguide:get_formspec(player_name, pagenum, recipe_num)
 			local X = (i-1) % width + 4.5
 			local Y = math.floor((i-1) / width + (6 - math.min(2, rows)))
 			local label = ""
-			if v:sub(1,6) == "group:" then label = "\nG" end
+			local tooltip = ""
+			if v:sub(1,6) == "group:" then
+				label = "\nG"
+				tooltip = "tooltip["..self:get_recipe(v)..";"..string.format("Any item item belonging to the %s group", v:sub(7, -1)).."]"
+			end
 
 			formspec = formspec.."item_image_button["..X..","..Y..";1,1;"..
-					     self:get_recipe(v)..";"..self:get_recipe(v)..";"..label.."]"
+					     self:get_recipe(v)..";"..self:get_recipe(v)..";"..label.."]"..tooltip
 		end
 
 		local output = recipes[recipe_num].output
