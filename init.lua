@@ -33,6 +33,26 @@ function craftguide:get_recipe(item)
 	return item
 end
 
+function craftguide.extract_groupnames(groupname)
+	if string.sub(groupname, 1, 6) == "group:" then
+		local group_names = string.split(string.sub(groupname, 7, -1), ",")
+		if #group_names == 1 then
+			return group_names[1], 1
+		end
+		local s = ""
+		for g=1,#group_names do
+			if g > 1 then
+				-- List connector
+				s = s .. " and "
+			end
+			s = s .. group_names[g]
+		end
+		return s, #group_names
+	else
+		return nil, 0
+	end
+end
+
 function craftguide:get_formspec(player_name, pagenum, recipe_num)
 	local data = datas[player_name]
 	local formspec = [[ size[8,6.6;]
@@ -87,9 +107,16 @@ function craftguide:get_formspec(player_name, pagenum, recipe_num)
 			local Y = math.floor((i-1) / width + (6 - math.min(2, rows)))
 			local label = ""
 			local tooltip = ""
-			if v:sub(1,6) == "group:" then
+			local groupstring_inner, groupcount = craftguide.extract_groupnames(v)
+			if groupcount > 0 then
 				label = "\nG"
-				tooltip = "tooltip["..self:get_recipe(v)..";"..string.format("Any item item belonging to the %s group", v:sub(7, -1)).."]"
+				local groupstring
+				if groupcount > 1 then
+					groupstring = string.format("Any item belonging to the following groups: %s", groupstring_inner)
+				else
+					groupstring = string.format("Any item belonging to the %s group", groupstring_inner)
+				end
+				tooltip = "tooltip["..self:get_recipe(v)..";"..minetest.formspec_escape(groupstring).."]"
 			end
 
 			formspec = formspec.."item_image_button["..X..","..Y..";1,1;"..
