@@ -361,10 +361,6 @@ mt.register_on_player_receive_fields(function(player, formname, fields)
 				item = item:sub(1,-5)
 			end
 
-			local recipes = get_recipes(item)
-			local is_fuel = get_fueltime(item) > 0
-			if not recipes and not is_fuel then return end
-
 			local is_fuel = get_fueltime(item) > 0
 			local recipes = get_recipes(item)
 			if not recipes and not is_fuel then return end
