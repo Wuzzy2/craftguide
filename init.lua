@@ -225,22 +225,26 @@ local function get_tooltip(item, groups, cooktime, burntime)
 		end
 
 		groupstr = concat(groupstr, ", ")
-		tooltip = S("Any item belonging to the group(s):") .. " " .. groupstr
+		if #groups == 1 then
+			tooltip = S("Any item belonging to the group: @1", groupstr)
+		else
+			tooltip = S("Any item belonging to the groups: @1", groupstr)
+		end
 	else
 		tooltip = reg_items[item].description
 	end
 
 	if cooktime then
-		tooltip = tooltip .. "\n" .. S("Cooking time:") .. " " ..
-			mt.colorize("yellow", cooktime)
+		tooltip = tooltip .. "\n" .. S("Cooking time: @1",
+			mt.colorize("yellow", cooktime))
 	end
 
 	if burntime then
-		tooltip = tooltip .. "\n" .. S("Burning time:") .. " " ..
-			mt.colorize("yellow", burntime)
+		tooltip = tooltip .. "\n" .. S("Burning time: @1",
+			mt.colorize("yellow", burntime))
 	end
 
-	return "tooltip[" .. item .. ";" .. tooltip .. "]"
+	return "tooltip[" .. item .. ";" .. mt.formspec_escape(tooltip) .. "]"
 end
 
 local function get_recipe_fs(data, iY)
@@ -264,7 +268,7 @@ local function get_recipe_fs(data, iY)
 		fs[#fs + 1] = fmt(fmt_label,
 			(data.iX / 2) - 2,
 			iY + 2.2,
-			S("Recipe is too big to be displayed (@1x@2)", width, rows))
+			mt.formspec_escape(S("Recipe is too big to be displayed (@1x@2)", width, rows)))
 
 		return concat(fs)
 	end
@@ -291,7 +295,8 @@ local function get_recipe_fs(data, iY)
 			item = groups_to_item(groups)
 		end
 
-		local label = groups and "\nG" or ""
+		-- "G" is displayed on top of the item icon indicating a group
+		local label = groups and "\n" .. mt.formspec_escape(S("G")) or ""
 
 		fs[#fs + 1] = fmt("item_image_button[%f,%f;%f,%f;%s;%s;%s]",
 			X,
@@ -300,7 +305,7 @@ local function get_recipe_fs(data, iY)
 			btn_size,
 			item,
 			item:match("%S*"),
-			label)
+			mt.formspec_escape(label))
 
 		local burntime = fuel_cache[item]
 
@@ -334,7 +339,7 @@ local function get_recipe_fs(data, iY)
 			iY + (sfinv_only and 2.2 or 1.7),
 			0.5,
 			0.5,
-			tooltip)
+			mt.formspec_escape(tooltip))
 	end
 
 	local arrow_X  = rightest + (s_btn_size or 1.1)
@@ -364,7 +369,7 @@ local function get_recipe_fs(data, iY)
 			1.1,
 			1.1,
 			recipe.output,
-			output_name)
+			mt.formspec_escape(output_name))
 
 		if burntime then
 			fs[#fs + 1] = get_tooltip(output_name, nil, nil, burntime)
@@ -385,16 +390,15 @@ local function get_recipe_fs(data, iY)
 		end
 	end
 
-	fs[#fs + 1] = fmt("button[%f,%f;%f,%f;%s;%s %u %s %u]",
+	fs[#fs + 1] = fmt("button[%f,%f;%f,%f;%s;%s]",
 		data.iX - (sfinv_only and 2.2 or 2.6),
 		iY + (sfinv_only and 3.9 or 3.3),
 		2.2,
 		1,
 		"alternate",
-		data.show_usages and S("Usage") or S("Recipe"),
-		data.rnum,
-		S("of"),
-		#data.recipes)
+		data.show_usages and
+				mt.formspec_escape(S("Usage @1 of @2", data.rnum, #data.recipes)) or
+				mt.formspec_escape(S("Recipe @1 of @2", data.rnum, #data.recipes)))
 
 	return concat(fs)
 end
@@ -415,8 +419,8 @@ local function make_formspec(name)
 			background[1,1;1,1;craftguide_bg.png;true]
 		]]
 
-		fs[#fs + 1] = "tooltip[size_inc;" .. S("Increase window size") .. "]"
-		fs[#fs + 1] = "tooltip[size_dec;" .. S("Decrease window size") .. "]"
+		fs[#fs + 1] = "tooltip[size_inc;" .. mt.formspec_escape(S("Increase window size")) .. "]"
+		fs[#fs + 1] = "tooltip[size_dec;" .. mt.formspec_escape(S("Decrease window size")) .. "]"
 
 		fs[#fs + 1] = "image_button[" .. (data.iX * 0.47) ..
 				",0.12;0.8,0.8;craftguide_zoomin_icon.png;size_inc;]"
@@ -430,10 +434,10 @@ local function make_formspec(name)
 		field_close_on_enter[filter;false]
 	]]
 
-	fs[#fs + 1] = "tooltip[search;" .. S("Search") .. "]"
-	fs[#fs + 1] = "tooltip[clear;" .. S("Reset") .. "]"
-	fs[#fs + 1] = "tooltip[prev;" .. S("Previous page") .. "]"
-	fs[#fs + 1] = "tooltip[next;" .. S("Next page") .. "]"
+	fs[#fs + 1] = "tooltip[search;" .. mt.formspec_escape(S("Search")) .. "]"
+	fs[#fs + 1] = "tooltip[clear;" .. mt.formspec_escape(S("Reset")) .. "]"
+	fs[#fs + 1] = "tooltip[prev;" .. mt.formspec_escape(S("Previous page")) .. "]"
+	fs[#fs + 1] = "tooltip[next;" .. mt.formspec_escape(S("Next page")) .. "]"
 
 	fs[#fs + 1] = "image_button[" .. (data.iX - (sfinv_only and 2.6 or 3.1)) ..
 			",0.12;0.8,0.8;craftguide_prev_icon.png;prev;]"
@@ -441,7 +445,7 @@ local function make_formspec(name)
 	fs[#fs + 1] = fmt(fmt_label,
 			data.iX - (sfinv_only and 1.7 or 2.2),
 			0.22,
-			mt.colorize("yellow", data.pagenum) .. " / " .. data.pagemax)
+			mt.colorize("yellow", mt.formspec_escape(S("@1 / @2", data.pagenum, data.pagemax))))
 
 	fs[#fs + 1] = "image_button[" .. (data.iX -
 			(sfinv_only and 0.7 or 1.2) - (data.iX >= 11 and 0.08 or 0)) ..
@@ -453,7 +457,7 @@ local function make_formspec(name)
 		fs[#fs + 1] = fmt(fmt_label,
 			(data.iX / 2) - 1,
 			2,
-			S("No item to show"))
+			mt.formspec_escape(S("No item to show")))
 	end
 
 	local first_item = (data.pagenum - 1) * ipp
@@ -747,7 +751,7 @@ end)
 
 if sfinv_only then
 	sfinv.register_page("craftguide:craftguide", {
-		title = "Craft Guide",
+		title = S("Craft Guide"),
 
 		get = function(self, player, context)
 			local name = player:get_player_name()
