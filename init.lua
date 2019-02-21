@@ -346,7 +346,7 @@ local function groups_to_item(groups)
 	return ""
 end
 
-local function get_tooltip(item, groups, cooktime, burntime)
+local function get_tooltip(item, groups)
 	local tooltip
 
 	if groups then
@@ -363,16 +363,6 @@ local function get_tooltip(item, groups, cooktime, burntime)
 		tooltip = reg_items[item].description
 	end
 
-	if cooktime then
-		tooltip = tooltip .. "\n" ..
-			S("Cooking time: @1", colorize("yellow", cooktime))
-	end
-
-	if burntime then
-		tooltip = tooltip .. "\n" ..
-			S("Burning time: @1", colorize("yellow", burntime))
-	end
-
 	return fmt(FMT.tooltip, item, ESC(tooltip))
 end
 
@@ -381,7 +371,7 @@ local function get_recipe_fs(data, iY)
 	local recipe = data.recipes[data.rnum]
 	local width = recipe.width
 	local xoffset = data.iX / 2.15
-	local cooktime, shapeless
+	local cooktime, burntime, shapeless
 
 	if recipe.type == "cooking" then
 		cooktime, width = width, 1
@@ -449,8 +439,8 @@ local function get_recipe_fs(data, iY)
 
 		local burntime = fuel_cache[item]
 
-		if groups or cooktime or burntime then
-			fs[#fs + 1] = get_tooltip(item, groups, cooktime, burntime)
+		if groups then
+			fs[#fs + 1] = get_tooltip(item, groups)
 		end
 	end
 
@@ -471,8 +461,15 @@ local function get_recipe_fs(data, iY)
 			0.5,
 			icon)
 
-		local tooltip = custom_recipe and custom_recipe.description or
-				shapeless and S("Shapeless") or S("Cooking")
+		local tooltip
+		if custom_recipe then
+			tooltip = custom_recipe.description
+		elseif shapeless then
+			tooltip = S("Shapeless")
+		else
+			tooltip = S("Cooking") .. "\n" ..
+				S("Cooking time: @1", colorize("yellow", cooktime))
+		end
 
 		fs[#fs + 1] = fmt("tooltip[%f,%f;%f,%f;%s]",
 			rightest + 1.2,
@@ -499,9 +496,17 @@ local function get_recipe_fs(data, iY)
 			1.1,
 			1.1,
 			"craftguide_fire.png")
+		local tooltip = S("Fuel")
+			-- TODO: Add burntime (see "small flame")
+		fs[#fs + 1] = fmt("tooltip[%f,%f;%f,%f;%s]",
+			output_X,
+			sfinv_only and 6.68 or iY + 2.18,
+			1.1,
+			1.1,
+			ESC(tooltip))
 	else
 		local output_name = match(recipe.output, "%S+")
-		local burntime = fuel_cache[output_name]
+		burntime = fuel_cache[output_name]
 
 		fs[#fs + 1] = fmt(FMT.item_image_button,
 			output_X,
@@ -513,8 +518,6 @@ local function get_recipe_fs(data, iY)
 			"")
 
 		if burntime then
-			fs[#fs + 1] = get_tooltip(output_name, nil, nil, burntime)
-
 			fs[#fs + 1] = fmt(FMT.image,
 				output_X + 1,
 				sfinv_only and 6.83 or iY + 2.33,
@@ -528,6 +531,14 @@ local function get_recipe_fs(data, iY)
 				0.6,
 				0.6,
 				"craftguide_fire.png")
+			local tooltip = S("Fuel") .. "\n" ..
+				S("Burning time: @1", colorize("yellow", burntime))
+			fs[#fs + 1] = fmt("tooltip[%f,%f;%f,%f;%s]",
+				output_X + 1.6,
+				sfinv_only and 6.68 or iY + 2.18,
+				0.6,
+				0.6,
+				ESC(tooltip))
 		end
 	end
 
